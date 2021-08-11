@@ -1,6 +1,7 @@
 /**
  * Personium
- * Copyright 2021 Personium Project Authors
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +42,11 @@ import io.personium.plugin.base.utils.PluginUtils;
  */
 public class Jwks {
 
-    /** Array of keyinfo */
+    /** Array of keyinfo. */
     JSONArray keyArray = null;
 
     /**
-     * Constructor of Jwks
+     * Constructor of Jwks.
      * @param keyArray JSONArray of Jwk keys.
      */
     public Jwks(final JSONArray keyArray) {
@@ -53,60 +54,68 @@ public class Jwks {
     }
 
     /**
-     * Find key from key list
+     * Find key from key list.
      * @param kid kid of Jwt header
      * @param alg alg of Jwt header
      * @return public key
+     * @throws AuthPluginException Exception thrown while finding key.
      */
     public Key getKey(String kid, String alg) throws AuthPluginException {
         for (Object o : keyArray) {
-            if (!(o instanceof JSONObject)) continue;
-            JSONObject k = (JSONObject)o;
-            
-            String compKid = (String)k.get("kid");
-            String compAlg = (String)k.get("alg");
-            if (!compKid.equals(kid)) continue;
+            if (!(o instanceof JSONObject)) {
+                continue;
+            }
+            JSONObject k = (JSONObject) o;
 
-            if (alg != null && !compAlg.equals(alg)) continue;
+            String compKid = (String) k.get("kid");
+            String compAlg = (String) k.get("alg");
+            if (!compKid.equals(kid)) {
+                continue;
+            }
 
-            String kty = (String)k.get("kty");
+            if (alg != null && !compAlg.equals(alg)) {
+                continue;
+            }
+
+            String kty = (String) k.get("kty");
             KeySpec ks = null;
-
 
             try {
                 KeyFactory kf = KeyFactory.getInstance(kty);
-                switch(kty) {
-                    case "RSA":
-                        BigInteger n = new BigInteger(1, PluginUtils.decodeBase64Url((String) k.get("n")));
-                        BigInteger e = new BigInteger(1, PluginUtils.decodeBase64Url((String) k.get("e")));
-                        ks = new RSAPublicKeySpec(n, e);
+                switch (kty) {
+                case "RSA":
+                    BigInteger n = new BigInteger(1, PluginUtils.decodeBase64Url((String) k.get("n")));
+                    BigInteger e = new BigInteger(1, PluginUtils.decodeBase64Url((String) k.get("e")));
+                    ks = new RSAPublicKeySpec(n, e);
                     break;
-                    case "EC":
-                        AlgorithmParameters params  = AlgorithmParameters.getInstance("EC");
-                        String crv = (String)k.get("crv");
-                        if (!"P-256".equals(crv)) {
-                            throw OidcPluginException.UNEXPECTED_VALUE.create(String.format("curve %s is not supported", crv));
-                        }
-                        params.init(new ECGenParameterSpec("secp256r1"));
-                        BigInteger x = new BigInteger(1, PluginUtils.decodeBase64Url((String) k.get("x")));
-                        BigInteger y = new BigInteger(1, PluginUtils.decodeBase64Url((String) k.get("y")));
-                        ECPoint w = new ECPoint(x, y);
-                        ks = new ECPublicKeySpec(w, params.getParameterSpec(ECParameterSpec.class));
+                case "EC":
+                    AlgorithmParameters params = AlgorithmParameters.getInstance("EC");
+                    String crv = (String) k.get("crv");
+                    if (!"P-256".equals(crv)) {
+                        throw OidcPluginException.UNEXPECTED_VALUE
+                                .create(String.format("curve %s is not supported", crv));
+                    }
+                    params.init(new ECGenParameterSpec("secp256r1"));
+                    BigInteger x = new BigInteger(1, PluginUtils.decodeBase64Url((String) k.get("x")));
+                    BigInteger y = new BigInteger(1, PluginUtils.decodeBase64Url((String) k.get("y")));
+                    ECPoint w = new ECPoint(x, y);
+                    ks = new ECPublicKeySpec(w, params.getParameterSpec(ECParameterSpec.class));
                     break;
-                    default:
-                        throw OidcPluginException.UNEXPECTED_VALUE.create(String.format("kty %s is not supported", kty));
+                default:
+                    throw OidcPluginException.UNEXPECTED_VALUE.create(String.format("kty %s is not supported", kty));
                 }
                 return kf.generatePublic(ks);
-            } catch(NoSuchAlgorithmException|InvalidParameterSpecException e) {
+            } catch (NoSuchAlgorithmException | InvalidParameterSpecException e) {
                 throw OidcPluginException.UNEXPECTED_VALUE.create();
-            } catch(InvalidKeySpecException e) {
+            } catch (InvalidKeySpecException e) {
                 throw OidcPluginException.INVALID_KEY.create();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
-            
+
         // there is no key
-        throw OidcPluginException.INVALID_ID_TOKEN.create("No supported key is found from jwks_uri. ID Token header value is invalid.");
+        throw OidcPluginException.INVALID_ID_TOKEN
+                .create("No supported key is found from jwks_uri. ID Token header value is invalid.");
     }
 }

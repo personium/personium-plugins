@@ -1,6 +1,7 @@
 /**
  * Personium
- * Copyright 2021 Personium Project Authors
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,11 +50,12 @@ import io.personium.plugin.base.utils.ProxyUtils;
 import io.personium.test.categories.Unit;
 
 /**
- * Unit test for OidcPluginExceptionTest
+ * Unit test for OidcPluginExceptionTest.
  */
-@Category({ Unit.class })
+@Category({Unit.class})
 public class GenericOIDCAuthPluginTest {
 
+    /** testcontainer of KeyCloak. */
     @ClassRule
     public static KeyCloakContainer kcContainer = new KeyCloakContainer(DockerImageName.parse("jboss/keycloak:12.0.2"))
             .withExposedPorts(8080)
@@ -63,7 +65,7 @@ public class GenericOIDCAuthPluginTest {
             .withEnv("KEYCLOAK_IMPORT", "/tmp/keycloak_realm.json");
 
     /**
-     * Test with keycloak
+     * Test with keycloak.
      */
     @Test
     public void testingWithKeyCloak() {
@@ -75,12 +77,8 @@ public class GenericOIDCAuthPluginTest {
         try {
             GenericOIDCAuthPlugin plugin = new GenericOIDCAuthPlugin(
                     kcOrigin + "auth/realms/test/.well-known/openid-configuration",
-                    Arrays.asList("dummy_client", "1654428311", "oidctestclient"),
-                    "Generic plugin test with keycloak",
-                    "oidc:testkeycloak",
-                    "preferred_username",
-                    "urn:x-personium:oidc:testkeycloak"
-                    );
+                    Arrays.asList("dummy_client", "1654428311", "oidctestclient"), "Generic plugin test with keycloak",
+                    "oidc:testkeycloak", "preferred_username", "urn:x-personium:oidc:testkeycloak");
 
             Map<String, List<String>> body = new HashMap<String, List<String>>();
             try {
@@ -132,7 +130,7 @@ public class GenericOIDCAuthPluginTest {
                 }
             }
 
-            body.put("id_token", Arrays.asList(new String[] { (String) jsonObj.get("id_token") }));
+            body.put("id_token", Arrays.asList(new String[] {(String) jsonObj.get("id_token")}));
 
             try {
                 AuthenticatedIdentity ai = plugin.authenticate(body);
@@ -149,8 +147,7 @@ public class GenericOIDCAuthPluginTest {
     }
 
     /**
-     * Testing isProviderClientIdTrusted returns true if aud(client_id)
-     * in claims is trusted.
+     * Testing isProviderClientIdTrusted returns true if aud(client_id) in claims is trusted.
      */
     @Test
     public void testingIsProviderClientIdTrusted() {
@@ -158,11 +155,11 @@ public class GenericOIDCAuthPluginTest {
         Claims claims = Jwts.claims();
         claims.setAudience("dummy_client");
 
-        Claims claims_multipleaud = Jwts.claims();
-        claims_multipleaud.put("aud", new ArrayList<>(Arrays.asList("dummy_client", "dummy_client2")));
+        Claims claimsMultipleAud = Jwts.claims();
+        claimsMultipleAud.put("aud", new ArrayList<>(Arrays.asList("dummy_client", "dummy_client2")));
 
-        Claims claims_not_trusted = Jwts.claims();
-        claims_not_trusted.setAudience("dummy_client_not_trusted");
+        Claims claimsNotTrusted = Jwts.claims();
+        claimsNotTrusted.setAudience("dummy_client_not_trusted");
 
         String address = kcContainer.getHost();
         Integer port = kcContainer.getMappedPort(8080);
@@ -172,16 +169,12 @@ public class GenericOIDCAuthPluginTest {
         try {
             GenericOIDCAuthPlugin plugin = new GenericOIDCAuthPlugin(
                     kcOrigin + "auth/realms/test/.well-known/openid-configuration",
-                    Arrays.asList("dummy_client", "oidctestclient"),
-                    "Generic plugin test with keycloak",
-                    "oidc:testkeycloak",
-                    "preferred_username",
-                    "urn:x-personium:oidc:testkeycloak"
-                    );
+                    Arrays.asList("dummy_client", "oidctestclient"), "Generic plugin test with keycloak",
+                    "oidc:testkeycloak", "preferred_username", "urn:x-personium:oidc:testkeycloak");
 
             assertEquals(true, plugin.isProviderClientIdTrusted(claims));
-            assertEquals(true, plugin.isProviderClientIdTrusted(claims_multipleaud));
-            assertEquals(false, plugin.isProviderClientIdTrusted(claims_not_trusted));
+            assertEquals(true, plugin.isProviderClientIdTrusted(claimsMultipleAud));
+            assertEquals(false, plugin.isProviderClientIdTrusted(claimsNotTrusted));
         } catch (AuthPluginException e) {
             fail(e.getMessage());
         }

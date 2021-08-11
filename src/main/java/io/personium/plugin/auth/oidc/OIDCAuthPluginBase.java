@@ -1,6 +1,7 @@
 /**
  * Personium
- * Copyright 2021 Personium Project Authors
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,25 +34,26 @@ import io.personium.plugin.base.auth.AuthPluginException;
 import io.personium.plugin.base.auth.AuthenticatedIdentity;
 
 /**
- * Base of OIDCAuthPlugin
+ * Base of OIDCAuthPlugin.
  */
 public abstract class OIDCAuthPluginBase implements AuthPlugin {
 
-    /** String for toString method */
+    /** String for toString method. */
     public static final String PLUGIN_TOSTRING = "Generic Open ID Connect Authentication";
 
-    /** Key for id token */
+    /** Key for id token. */
     public static final String KEY_TOKEN = "id_token";
 
-    /** OIDC token handler */
+    /** OIDC token handler. */
     private OIDCTokenHandler tokenHandler = null;
 
     /**
-     * Constructor of OIDCAuthPlugin
-     * @param OIDCConfigurationURL URL of well-known openid-configuration for IdP
+     * Constructor of OIDCAuthPlugin.
+     * @param configURL URL of well-known openid-configuration for IdP
+     * @throws AuthPluginException Exception thrown while initializing
      */
-    protected OIDCAuthPluginBase(String OIDCConfigurationURL) throws AuthPluginException {
-        tokenHandler = OIDCTokenHandler.createFromOIDCConfigurationURL(OIDCConfigurationURL);
+    protected OIDCAuthPluginBase(String configURL) throws AuthPluginException {
+        tokenHandler = OIDCTokenHandler.createFromOIDCConfigurationURL(configURL);
     }
 
     /**
@@ -71,18 +73,18 @@ public abstract class OIDCAuthPluginBase implements AuthPlugin {
     }
 
     /**
-     * Define method for generating AuthenticatedIdentity from claims
+     * Define method for generating AuthenticatedIdentity from claims.
      * @param claims claims contained in id token
      * @return AuthenticatedIdentity
      */
-    abstract protected AuthenticatedIdentity parseClaimsToAuthenticatedIdentity(Claims claims);
+    protected abstract AuthenticatedIdentity parseClaimsToAuthenticatedIdentity(Claims claims);
 
     /**
-     * Abstract method for determining the provided audience is trusted
+     * Abstract method for determining the provided audience is trusted.
      * @param claims claims containerd in id token
      * @return true if client_id is trusted
      */
-    abstract boolean isProviderClientIdTrusted(Claims claims);
+    protected abstract boolean isProviderClientIdTrusted(Claims claims);
 
     /**
      * {@inheritDoc}
@@ -94,7 +96,7 @@ public abstract class OIDCAuthPluginBase implements AuthPlugin {
         }
 
         String idToken = null;
-        
+
         // get idToken from body
         List<String> idTokenList = body.get(KEY_TOKEN);
         if (idTokenList == null) {
@@ -116,7 +118,7 @@ public abstract class OIDCAuthPluginBase implements AuthPlugin {
         } catch (MalformedJwtException | IllegalArgumentException e) {
             e.printStackTrace();
             throw OidcPluginException.INVALID_ID_TOKEN.create("malformed jwt token is passed");
-        } catch (SignatureException e ) {
+        } catch (SignatureException e) {
             // IdToken contains wrong signature
             throw OidcPluginException.INVALID_ID_TOKEN.create("ID Token sig value is invalid");
         } catch (Exception e) {
@@ -126,7 +128,7 @@ public abstract class OIDCAuthPluginBase implements AuthPlugin {
         String issuer = claims.getIssuer();
 
         // check that issuer is specified
-        if(issuer == null || !issuer.equals(tokenHandler.getIssuer())) {
+        if (issuer == null || !issuer.equals(tokenHandler.getIssuer())) {
             PluginLog.OIDC.INVALID_ISSUER.params(issuer).writeLog();
             throw OidcPluginException.AUTHN_FAILED.create();
         }

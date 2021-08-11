@@ -1,6 +1,7 @@
 /**
  * Personium
- * Copyright 2021 Personium Project Authors
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +26,13 @@ import io.personium.plugin.base.auth.AuthPluginException;
 import io.personium.test.categories.Unit;
 
 /**
- * Unit test for OidcPluginExceptionTest
+ * Unit test for OidcPluginExceptionTest.
  */
 @Category({ Unit.class })
 public class OidcPluginExceptionTest {
 
     /**
-     * Testing whether you can create specified type of exception
+     * Testing whether you can create specified type of exception.
      */
     @Test
     public void testingForCreatingSpecifiedException() {

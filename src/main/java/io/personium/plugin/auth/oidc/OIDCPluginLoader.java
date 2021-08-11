@@ -1,6 +1,7 @@
 /**
  * Personium
- * Copyright 2021 Personium Project Authors
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,17 +30,16 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.personium.plugin.base.PluginLog;
 import io.personium.plugin.base.auth.AuthPlugin;
 import io.personium.plugin.base.auth.AuthPluginException;
 import io.personium.plugin.base.auth.AuthPluginLoader;
 
 /**
- * PluginLoader for OIDC authentication
+ * PluginLoader for OIDC authentication.
  */
 public class OIDCPluginLoader implements AuthPluginLoader {
 
-    /** Logger */
+    /** Logger. */
     private static Logger log = LoggerFactory.getLogger(OIDCPluginLoader.class);
 
     /**
@@ -50,7 +50,8 @@ public class OIDCPluginLoader implements AuthPluginLoader {
         ArrayList<AuthPlugin> result = new ArrayList<AuthPlugin>();
         Properties props = new Properties();
 
-        String unitConfigFilename = System.getProperty("io.personium.configurationFile", "personium-unit-config.properties");
+        String unitConfigFilename = System.getProperty("io.personium.configurationFile",
+                "personium-unit-config.properties");
 
         try (InputStream is = ClassLoader.getSystemResourceAsStream(unitConfigFilename)) {
             if (is == null) {
@@ -59,8 +60,12 @@ public class OIDCPluginLoader implements AuthPluginLoader {
                 return result;
             }
             props.load(is);
-        } catch(IllegalArgumentException | IOException e) {
-            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            log.info("IllegalArgumentException while loading: " + unitConfigFilename, e);
+            return result;
+        } catch (IOException e) {
+            log.info("IOException while loading: " + unitConfigFilename, e);
+            return result;
         }
 
         Pattern patternKey = Pattern.compile("io.personium.plugin.oidc.(\\w+).enabled");
@@ -70,28 +75,43 @@ public class OIDCPluginLoader implements AuthPluginLoader {
             Matcher matcher = patternKey.matcher(propKey);
             if (matcher.matches()) {
                 boolean isEnabled = Boolean.parseBoolean(props.getProperty(propKey));
-                if (!isEnabled) continue;
+                if (!isEnabled) {
+                    continue;
+                }
 
                 String propPrefix = "io.personium.plugin.oidc." + matcher.group(1);
-                String CONFIGURATION_ENDPOINT = props.getProperty(propPrefix + ".configURL");
+                String configURL = props.getProperty(propPrefix + ".configURL");
                 String trustedClientIds = props.getProperty(propPrefix + ".trustedClientIds");
-                List<String> TRUSTED_CLIENT_IDS = Arrays.asList(trustedClientIds.split(" "));
 
-                String CUSTOM_PLUGIN_NAME = props.getProperty(propPrefix + ".pluginName", "Generic OIDC Plugin");
-                String CUSTOM_ACCOUNT_TYPE = props.getProperty(propPrefix + ".accountType", "oidc:generic");
-                String CUSTOM_ACCOUNT_NAME_KEY = props.getProperty(propPrefix + ".accountNameKey", "username");
-                String CUSTOM_GRANT_TYPE = props.getProperty(propPrefix + ".grantType", "urn:x-personium:oidc:generic");
+                if (configURL == null) {
+                    log.info("configURL of " + matcher.group(1) + "is not set. Skip loading.");
+                    continue;
+                }
+                if (trustedClientIds == null) {
+                    log.info("trustedClientIds of " + matcher.group(1) + "is not set. Skip loading");
+                    continue;
+                }
+
+                List<String> listTrustedClientIds = Arrays.asList(trustedClientIds.split(" "));
+                String pluginName = props.getProperty(propPrefix + ".pluginName", "Generic OIDC Plugin");
+                String accountType = props.getProperty(propPrefix + ".accountType", "oidc:generic");
+                String accountNameKey = props.getProperty(propPrefix + ".accountNameKey", "username");
+                String grantType = props.getProperty(propPrefix + ".grantType", "urn:x-personium:oidc:generic");
 
                 try {
-                    result.add(new GenericOIDCAuthPlugin(CONFIGURATION_ENDPOINT,
-                        TRUSTED_CLIENT_IDS,
-                        CUSTOM_PLUGIN_NAME,
-                        CUSTOM_ACCOUNT_TYPE,
-                        CUSTOM_ACCOUNT_NAME_KEY,
-                        CUSTOM_GRANT_TYPE));
+                    result.add(new GenericOIDCAuthPlugin(configURL, listTrustedClientIds, pluginName, accountType,
+                            accountNameKey, grantType));
+                    StringBuilder logSB = new StringBuilder();
+                    logSB.append("Loaded plugin: " + pluginName + "\n");
+                    logSB.append("  configURL: " + configURL + "\n");
+                    logSB.append("  trustedClientIds: " + listTrustedClientIds + "\n");
+                    logSB.append("  accountType: " + accountType + "\n");
+                    logSB.append("  accountNameKey: " + accountNameKey + "\n");
+                    logSB.append("  grantType: " + grantType + "\n");
+                    log.info(logSB.toString());
                 } catch (AuthPluginException e) {
                     // Ignore exception while initializing auth plugin.
-                    log.info("exception is thrown while initializing auth plugin for " + CUSTOM_ACCOUNT_TYPE);
+                    log.info("exception is thrown while initializing auth plugin for " + accountType, e);
                 }
             }
         }

@@ -1,6 +1,7 @@
 /**
  * Personium
- * Copyright 2021 Personium Project Authors
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,54 +29,55 @@ import io.personium.plugin.base.auth.AuthPluginException;
 import io.personium.plugin.base.auth.AuthenticatedIdentity;
 
 /**
- * Implementation of GenericOIDCAuthPlugin
+ * Implementation of GenericOIDCAuthPlugin.
  */
 public class GenericOIDCAuthPlugin extends OIDCAuthPluginBase {
 
-    /** Logger */
+    /** Logger. */
     static Logger log = LoggerFactory.getLogger(GenericOIDCAuthPlugin.class);
 
-    /** OpenID Connect Configuration Endpoint URL */
+    /** OpenID Connect Configuration Endpoint URL. */
     final String configurationEndpointURL;
 
-    /** Trusted Client Ids */
+    /** Trusted Client Ids. */
     final List<String> trustedClientIds;
 
-    /** Customized plugin name */
+    /** Customized plugin name. */
     final String pluginName;
 
-    /** Customized account type */
+    /** Customized account type. */
     final String accountType;
 
-    /** Customized account name key in claims */
+    /** Customized account name key in claims. */
     final String accountNameKey;
 
-    /** Customized grant type */
+    /** Customized grant type. */
     final String grantType;
 
     /**
-     * Constructor of OIDCAuthPlugin
-     * @param configurationEndpointURL
-     * @param trustedCliendIds
-     * @param pluginName
-     * @param accountType
-     * @param accountNameKey
-     * @param grantType
+     * Constructor of OIDCAuthPlugin.
+     * @param configurationEndpointURL URL of OpenID Discovery 1.0 configuration endpoint
+     * @param trustedCliendIds List of trusted client ids
+     * @param pluginName Human-readable name of plugin
+     * @param accountType accountType of AuthPlugin
+     * @param accountNameKey key of name used to find account in the Cell
+     * @param grantType grantType of AuthPlugin
+     * @throws AuthPluginException Exception thrown while initializing
      */
     public GenericOIDCAuthPlugin(String configurationEndpointURL,
-        List<String> trustedCliendIds,
-        String pluginName,
-        String accountType,
-        String accountNameKey,
-        String grantType ) throws AuthPluginException {
-            super(configurationEndpointURL);
-            this.configurationEndpointURL = configurationEndpointURL;
-            this.trustedClientIds = trustedCliendIds;
-            this.pluginName = pluginName;
-            this.accountType = accountType;
-            this.accountNameKey = accountNameKey;
-            this.grantType = grantType;
-        }
+            List<String> trustedCliendIds,
+            String pluginName,
+            String accountType,
+            String accountNameKey,
+            String grantType) throws AuthPluginException {
+        super(configurationEndpointURL);
+        this.configurationEndpointURL = configurationEndpointURL;
+        this.trustedClientIds = trustedCliendIds;
+        this.pluginName = pluginName;
+        this.accountType = accountType;
+        this.accountNameKey = accountNameKey;
+        this.grantType = grantType;
+    }
 
     /**
      * {@inheritDoc}
@@ -92,7 +94,7 @@ public class GenericOIDCAuthPlugin extends OIDCAuthPluginBase {
     public String getAccountType() {
         return accountType;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -106,8 +108,9 @@ public class GenericOIDCAuthPlugin extends OIDCAuthPluginBase {
      */
     @Override
     protected AuthenticatedIdentity parseClaimsToAuthenticatedIdentity(Claims claims) {
+        // TODO: null check
         AuthenticatedIdentity ai = new AuthenticatedIdentity();
-        ai.setAccountName((String)claims.get(accountNameKey));
+        ai.setAccountName((String) claims.get(accountNameKey));
         ai.setAccountType(accountType);
         return ai;
     }
@@ -117,22 +120,26 @@ public class GenericOIDCAuthPlugin extends OIDCAuthPluginBase {
      */
     @Override
     @SuppressWarnings("unchecked")
-    boolean isProviderClientIdTrusted(Claims claims) {
-        if (trustedClientIds.contains("*")) return true;
+    protected boolean isProviderClientIdTrusted(Claims claims) {
+        if (trustedClientIds.contains("*")) {
+            return true;
+        }
 
         // Try to parse audience as ArrayList
         List<String> audiencesList = new ArrayList<String>();
         try {
             ArrayList<String> auds = claims.get("aud", ArrayList.class);
             audiencesList.addAll(auds);
-        } catch (RequiredTypeException e ) {
+        } catch (RequiredTypeException e) {
             // get audience as String
             String audience = claims.getAudience();
             audiencesList.add(audience);
         }
 
-        for (String client_id : trustedClientIds) {
-            if (audiencesList.contains(client_id)) return true;
+        for (String clientId : trustedClientIds) {
+            if (audiencesList.contains(clientId)) {
+                return true;
+            }
         }
 
         return false;

@@ -1,6 +1,7 @@
 /**
  * Personium
- * Copyright 2021 Personium Project Authors
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,33 +33,35 @@ import io.personium.plugin.base.auth.AuthPluginException;
 import io.personium.plugin.base.utils.PluginUtils;
 
 /**
- * Class of handling IDToken of OIDC
+ * Class of handling IDToken of OIDC.
  */
 public class OIDCTokenHandler {
 
-    /** Issuer */
+    /** Issuer. */
     private String issuer = null;
 
-    /** Resolver of Jwk */
+    /** Resolver of Jwk. */
     private JwksResolver jwksResolver = null;
 
-    /** Jwt Parser */
+    /** Jwt Parser. */
     private JwtParser jwtParser = null;
-    
+
     /**
-     * Constructor of OIDCTokenHandler
+     * Constructor of OIDCTokenHandler.
      * @param issuer issuer
      * @param jwks Jwks object
      */
     public OIDCTokenHandler(String issuer, Jwks jwks) {
-        if (jwks == null) throw new IllegalArgumentException("jwks must not be null");
+        if (jwks == null) {
+            throw new IllegalArgumentException("jwks must not be null");
+        }
         this.issuer = issuer;
         this.jwksResolver = new JwksResolver(jwks);
         this.jwtParser = Jwts.parserBuilder().setSigningKeyResolver(this.jwksResolver).build();
     }
 
     /**
-     * Try parsing id token
+     * Try parsing id token.
      * @param idToken id token
      * @return claims
      */
@@ -69,7 +72,7 @@ public class OIDCTokenHandler {
     }
 
     /**
-     * Getter of issuer
+     * Getter of issuer.
      * @return issuer
      */
     public String getIssuer() {
@@ -85,7 +88,7 @@ public class OIDCTokenHandler {
      */
     public static OIDCTokenHandler create(String issuer, String jwksURI) throws AuthPluginException {
         try {
-            JSONArray jsonJwks = (JSONArray)PluginUtils.getHttpJSON(jwksURI).get("keys");
+            JSONArray jsonJwks = (JSONArray) PluginUtils.getHttpJSON(jwksURI).get("keys");
             Jwks jwks = new Jwks(jsonJwks);
             return new OIDCTokenHandler(issuer, jwks);
         } catch (ClientProtocolException e) {
@@ -101,7 +104,7 @@ public class OIDCTokenHandler {
     }
 
     /**
-     * Create OIDCTokenHandle instance from configuration URL (For OpenID Connect Discovery 1.0)
+     * Create OIDCTokenHandle instance from configuration URL (For OpenID Connect Discovery 1.0).
      * @param configurationURL configuration URL.
      * @return OIDCTokenHandler
      * @throws AuthPluginException Exception thrown while initializing OIDCTokenHandler

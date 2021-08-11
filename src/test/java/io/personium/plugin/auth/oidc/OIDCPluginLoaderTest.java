@@ -38,13 +38,13 @@ import io.personium.plugin.base.utils.PluginUtils;
 import io.personium.test.categories.Unit;
 
 /**
- * Unit test for OIDCPluginLoaderTest
+ * Unit test for OIDCPluginLoaderTest.
  */
 @Category({Unit.class})
 public class OIDCPluginLoaderTest {
-    
+
     /**
-     * Test if OIDCPluginLoader can load only plugins which is enabled
+     * Test if OIDCPluginLoader can load only plugins which is enabled.
      */
     @SuppressWarnings("unchecked")
     @Test
@@ -55,9 +55,9 @@ public class OIDCPluginLoaderTest {
         JSONObject dummyConfig = new JSONObject();
         dummyConfig.put("jwks_uri", "https://localhost/jwks");
 
-        mocked.when(()->{PluginUtils.getHttpJSON(Mockito.anyString());})
-            .thenReturn(dummyConfig);
-        
+        mocked.when(() -> {
+            PluginUtils.getHttpJSON(Mockito.anyString());
+        }).thenReturn(dummyConfig);
 
         String keyConfigurationFile = "io.personium.configurationFile";
 
@@ -70,11 +70,12 @@ public class OIDCPluginLoaderTest {
                 fail("PluginLoader must implement AuthPluginLoader");
             }
             ArrayList<AuthPlugin> arrPlugin = loader.loadInstances();
-    
-            Set<String> accountTypes = new HashSet<String>(Arrays.asList("accountType001", "accountType002", "accountType004"));
-    
+
+            Set<String> accountTypes = new HashSet<String>(
+                    Arrays.asList("accountType001", "accountType002", "accountType004"));
+
             assertEquals(3, arrPlugin.size());
-    
+
             Set<String> authPluginTypes = new HashSet<String>();
             for (AuthPlugin authPlugin : arrPlugin) {
                 authPluginTypes.add(authPlugin.getAccountType());

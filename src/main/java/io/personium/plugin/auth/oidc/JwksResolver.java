@@ -1,6 +1,7 @@
 /**
  * Personium
- * Copyright 2021 Personium Project Authors
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +25,15 @@ import io.jsonwebtoken.SigningKeyResolverAdapter;
 import io.personium.plugin.base.auth.AuthPluginException;
 
 /**
- * Resolver of json web key for io.jsonwebtoken.JwtParser
+ * Resolver of json web key for io.jsonwebtoken.JwtParser.
  */
 public class JwksResolver extends SigningKeyResolverAdapter {
 
-    /** json web keys */
+    /** json web keys. */
     private Jwks jwks;
 
     /**
-     * Constructor of JwksResolver
+     * Constructor of JwksResolver.
      * @param jwks Jwks object containing json web key.
      */
     public JwksResolver(Jwks jwks) {
@@ -50,7 +51,7 @@ public class JwksResolver extends SigningKeyResolverAdapter {
         try {
             Key pubKey = jwks.getKey(kid, alg);
             return pubKey;
-        } catch(AuthPluginException e) {
+        } catch (AuthPluginException e) {
             return null;
         }
     }

@@ -1,6 +1,7 @@
 /**
  * Personium
- * Copyright 2021 Personium Project Authors
+ * Copyright 2014-2021 Personium Project Authors
+ * - FUJITSU LIMITED
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +21,15 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
- * Docker Container class for testing with KeyCloak
+ * Docker Container class for testing with KeyCloak.
  */
 class KeyCloakContainer extends GenericContainer<KeyCloakContainer> {
 
     /**
-     * {@inheritDoc}
+     * constructor of KeyCloakContainer.
+     * @param arg0 docker container image name
      */
-    public KeyCloakContainer(DockerImageName arg0) {
+    KeyCloakContainer(DockerImageName arg0) {
         super(arg0);
     }
 }
