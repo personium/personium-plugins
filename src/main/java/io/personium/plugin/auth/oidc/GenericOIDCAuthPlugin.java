@@ -108,9 +108,12 @@ public class GenericOIDCAuthPlugin extends OIDCAuthPluginBase {
      */
     @Override
     protected AuthenticatedIdentity parseClaimsToAuthenticatedIdentity(Claims claims) {
-        // TODO: null check
         AuthenticatedIdentity ai = new AuthenticatedIdentity();
-        ai.setAccountName((String) claims.get(accountNameKey));
+        String accountName = (String) claims.get(accountNameKey);
+        if (accountName == null) {
+            return null;
+        }
+        ai.setAccountName(accountName);
         ai.setAccountType(accountType);
         return ai;
     }
@@ -129,7 +132,9 @@ public class GenericOIDCAuthPlugin extends OIDCAuthPluginBase {
         List<String> audiencesList = new ArrayList<String>();
         try {
             ArrayList<String> auds = claims.get("aud", ArrayList.class);
-            audiencesList.addAll(auds);
+            if (auds != null) {
+                audiencesList.addAll(auds);
+            }
         } catch (RequiredTypeException e) {
             // get audience as String
             String audience = claims.getAudience();

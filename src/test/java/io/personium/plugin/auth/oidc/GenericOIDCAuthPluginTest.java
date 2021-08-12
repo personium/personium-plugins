@@ -26,59 +26,39 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.testcontainers.containers.BindMode;
-import org.testcontainers.utility.DockerImageName;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;
 import io.personium.plugin.base.auth.AuthPluginException;
 import io.personium.plugin.base.auth.AuthenticatedIdentity;
-import io.personium.plugin.base.utils.ProxyUtils;
 import io.personium.test.categories.Unit;
 
 /**
  * Unit test for OidcPluginExceptionTest.
  */
 @Category({Unit.class})
-public class GenericOIDCAuthPluginTest {
+public class GenericOIDCAuthPluginTest extends OIDCTestBase {
 
-    /** testcontainer of KeyCloak. */
-    @ClassRule
-    public static KeyCloakContainer kcContainer = new KeyCloakContainer(DockerImageName.parse("jboss/keycloak:12.0.2"))
-            .withExposedPorts(8080)
-            .withClasspathResourceMapping("keycloak_realm.json", "/tmp/keycloak_realm.json", BindMode.READ_ONLY)
-            // .withEnv("KEYCLOAK_USER", "admin")
-            // .withEnv("KEYCLOAK_PASSWORD", "password")
-            .withEnv("KEYCLOAK_IMPORT", "/tmp/keycloak_realm.json");
+    static final List<String> TRUSTED_CLIENTID = Arrays.asList("dummy_client", "oidctestclient");
+    static final String PLUGIN_NAME = "Testing Plugin";
+    static final String ACCOUNT_TYPE = "oidc:testplugintype";
+    static final String ACCOUNT_NAME_KEY = "accountnamekey_test";
+    static final String GRANT_TYPE = "urn:x-personium:oidc:plugintest";
 
     /**
-     * Test with keycloak.
+     * Test that GenericOIDCAuthPlugin returns AuthenticatedIdentity specified in IdToken.
      */
     @Test
-    public void testingWithKeyCloak() {
-        String address = kcContainer.getHost();
-        Integer port = kcContainer.getMappedPort(8080);
+    public void GenericOIDCAuthPlugin_returns_AuthenticatedIdentity() {
+        String testUserAccountName = "testuser";
 
-        String kcOrigin = "http://" + address + ":" + port + "/";
-
+        // configure
         try {
-            GenericOIDCAuthPlugin plugin = new GenericOIDCAuthPlugin(
-                    kcOrigin + "auth/realms/test/.well-known/openid-configuration",
-                    Arrays.asList("dummy_client", "1654428311", "oidctestclient"), "Generic plugin test with keycloak",
-                    "oidc:testkeycloak", "preferred_username", "urn:x-personium:oidc:testkeycloak");
+            GenericOIDCAuthPlugin plugin = new GenericOIDCAuthPlugin(CONFIGURATION_ENDPOINT_URL, TRUSTED_CLIENTID,
+                    PLUGIN_NAME, ACCOUNT_TYPE, ACCOUNT_NAME_KEY, GRANT_TYPE);
 
             Map<String, List<String>> body = new HashMap<String, List<String>>();
             try {
@@ -88,53 +68,18 @@ public class GenericOIDCAuthPluginTest {
                 assertEquals("Required parameter [id_token] missing.", e.getMessage());
             }
 
-            // get id_token
-            HttpPost post = new HttpPost(kcOrigin + "auth/realms/test/protocol/openid-connect/token");
-            ArrayList<NameValuePair> params = new ArrayList<>();
-            params.add(new BasicNameValuePair("grant_type", "password"));
-            params.add(new BasicNameValuePair("client_id", "oidctestclient"));
-            params.add(new BasicNameValuePair("client_secret", "6cbd79e9-c387-4c72-9a1e-319441d44a81"));
-            params.add(new BasicNameValuePair("username", "testuser"));
-            params.add(new BasicNameValuePair("password", "passw0rd"));
-            params.add(new BasicNameValuePair("response_type", "id_token"));
-            params.add(new BasicNameValuePair("scope", "openid"));
-            try {
-                post.setEntity(new UrlEncodedFormEntity(params));
-            } catch (Exception e) {
-                fail(e.getMessage());
-            }
-
-            HttpResponse res = null;
-            CloseableHttpClient httpClient = null;
-            JSONObject jsonObj = null;
-            try {
-                if (ProxyUtils.isProxyHost()) {
-                    httpClient = ProxyUtils.proxyHttpClient();
-                    post.setConfig(ProxyUtils.getRequestConfig());
-                } else {
-                    httpClient = CachingHttpClientBuilder.create().build();
-                }
-                res = httpClient.execute(post);
-
-                String bodyStr = EntityUtils.toString(res.getEntity(), "utf-8");
-                jsonObj = (JSONObject) new JSONParser().parse(bodyStr);
-            } catch (Exception e) {
-                e.printStackTrace();
-                fail(e.getMessage());
-            } finally {
-                try {
-                    httpClient.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    fail(e.getMessage());
-                }
-            }
-
-            body.put("id_token", Arrays.asList(new String[] {(String) jsonObj.get("id_token")}));
+            // Generate id token
+            Claims claims = Jwts.claims();
+            claims.put(ACCOUNT_NAME_KEY, testUserAccountName);
+            claims.setIssuer(ISSUER_STRING);
+            claims.setAudience(TRUSTED_CLIENTID.get(0));
+            String idToken = Jwts.builder().setHeaderParam(JwsHeader.KEY_ID, keyId).signWith(privateKey)
+                    .setClaims(claims).compact();
+            body.put("id_token", Arrays.asList(new String[] {idToken}));
 
             try {
                 AuthenticatedIdentity ai = plugin.authenticate(body);
-                assertEquals("testuser", ai.getAccountName());
+                assertEquals(testUserAccountName, ai.getAccountName());
                 assertEquals(plugin.getAccountType(), ai.getAccountType());
             } catch (Exception e) {
                 e.printStackTrace();
@@ -147,7 +92,7 @@ public class GenericOIDCAuthPluginTest {
     }
 
     /**
-     * Testing isProviderClientIdTrusted returns true if aud(client_id) in claims is trusted.
+     * Test that isProviderClientIdTrusted returns true if aud(client_id) in claims is trusted.
      */
     @Test
     public void testingIsProviderClientIdTrusted() {
@@ -161,16 +106,9 @@ public class GenericOIDCAuthPluginTest {
         Claims claimsNotTrusted = Jwts.claims();
         claimsNotTrusted.setAudience("dummy_client_not_trusted");
 
-        String address = kcContainer.getHost();
-        Integer port = kcContainer.getMappedPort(8080);
-
-        String kcOrigin = "http://" + address + ":" + port + "/";
-
         try {
-            GenericOIDCAuthPlugin plugin = new GenericOIDCAuthPlugin(
-                    kcOrigin + "auth/realms/test/.well-known/openid-configuration",
-                    Arrays.asList("dummy_client", "oidctestclient"), "Generic plugin test with keycloak",
-                    "oidc:testkeycloak", "preferred_username", "urn:x-personium:oidc:testkeycloak");
+            GenericOIDCAuthPlugin plugin = new GenericOIDCAuthPlugin(CONFIGURATION_ENDPOINT_URL, TRUSTED_CLIENTID,
+                    PLUGIN_NAME, ACCOUNT_TYPE, ACCOUNT_NAME_KEY, GRANT_TYPE);
 
             assertEquals(true, plugin.isProviderClientIdTrusted(claims));
             assertEquals(true, plugin.isProviderClientIdTrusted(claimsMultipleAud));

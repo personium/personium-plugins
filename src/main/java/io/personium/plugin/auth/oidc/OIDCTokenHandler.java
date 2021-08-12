@@ -21,7 +21,6 @@ import java.io.IOException;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
@@ -41,34 +40,48 @@ public class OIDCTokenHandler {
     private String issuer = null;
 
     /** Resolver of Jwk. */
-    private JwksResolver jwksResolver = null;
+    private JwkResolver jwkResolver = null;
 
     /** Jwt Parser. */
     private JwtParser jwtParser = null;
+
+    /** How many parts JWS contains. */
+    private static final int PART_COUNT_JWS = 3;
+
+    /** How many parts JWE contains. */
+    private static final int PART_COUNT_JWE = 5;
 
     /**
      * Constructor of OIDCTokenHandler.
      * @param issuer issuer
      * @param jwks Jwks object
      */
-    public OIDCTokenHandler(String issuer, Jwks jwks) {
+    public OIDCTokenHandler(String issuer, JwkSet jwks) {
         if (jwks == null) {
             throw new IllegalArgumentException("jwks must not be null");
         }
         this.issuer = issuer;
-        this.jwksResolver = new JwksResolver(jwks);
-        this.jwtParser = Jwts.parserBuilder().setSigningKeyResolver(this.jwksResolver).build();
+        this.jwkResolver = new JwkResolver(jwks);
+        this.jwtParser = Jwts.parserBuilder().setSigningKeyResolver(this.jwkResolver).build();
     }
 
     /**
-     * Try parsing id token.
+     * Try parsing id token. jwtParser does not support encrypted IdToken(JWE).
      * @param idToken id token
      * @return claims
      */
     public Claims parseIdToken(String idToken) {
-        Jws<Claims> jws = this.jwtParser.parseClaimsJws(idToken);
-        Claims claims = jws.getBody();
-        return claims;
+        String[] parts = idToken.split("\\.");
+
+        if (parts.length == PART_COUNT_JWS) {
+            Jws<Claims> jws = this.jwtParser.parseClaimsJws(idToken);
+            Claims claims = jws.getBody();
+            return claims;
+        } else if (parts.length == PART_COUNT_JWE) {
+            throw new IllegalArgumentException("JWE styled IdToken is not supported");
+        } else {
+            throw new IllegalArgumentException("Unknown IdToken");
+        }
     }
 
     /**
@@ -88,8 +101,8 @@ public class OIDCTokenHandler {
      */
     public static OIDCTokenHandler create(String issuer, String jwksURI) throws AuthPluginException {
         try {
-            JSONArray jsonJwks = (JSONArray) PluginUtils.getHttpJSON(jwksURI).get("keys");
-            Jwks jwks = new Jwks(jsonJwks);
+            JSONObject jsonJwks = PluginUtils.getHttpJSON(jwksURI);
+            JwkSet jwks = JwkSet.parseJSON(jsonJwks);
             return new OIDCTokenHandler(issuer, jwks);
         } catch (ClientProtocolException e) {
             // exception with HTTP procotol
@@ -114,6 +127,12 @@ public class OIDCTokenHandler {
             JSONObject configurationJSON = PluginUtils.getHttpJSON(configurationURL);
             String jwksURI = (String) configurationJSON.get("jwks_uri");
             String issuer = (String) configurationJSON.get("issuer");
+            if (jwksURI == null) {
+                throw OidcPluginException.UNEXPECTED_RESPONSE.create(jwksURI, "non-null `jwks_uri`");
+            }
+            if (issuer == null) {
+                throw OidcPluginException.UNEXPECTED_RESPONSE.create(issuer, "non-null `issuer`");
+            }
             return create(issuer, jwksURI);
         } catch (ClientProtocolException e) {
             // exception with HTTP procotol

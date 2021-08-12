@@ -26,38 +26,24 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.json.simple.JSONObject;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 
 import io.personium.plugin.base.auth.AuthPlugin;
 import io.personium.plugin.base.auth.AuthPluginLoader;
-import io.personium.plugin.base.utils.PluginUtils;
 import io.personium.test.categories.Unit;
 
 /**
  * Unit test for OIDCPluginLoaderTest.
  */
 @Category({Unit.class})
-public class OIDCPluginLoaderTest {
+public class OIDCPluginLoaderTest extends OIDCTestBase {
 
     /**
      * Test if OIDCPluginLoader can load only plugins which is enabled.
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void multipleInstanceLoadTest() {
-
-        MockedStatic<PluginUtils> mocked = Mockito.mockStatic(PluginUtils.class);
-
-        JSONObject dummyConfig = new JSONObject();
-        dummyConfig.put("jwks_uri", "https://localhost/jwks");
-
-        mocked.when(() -> {
-            PluginUtils.getHttpJSON(Mockito.anyString());
-        }).thenReturn(dummyConfig);
 
         String keyConfigurationFile = "io.personium.configurationFile";
 
