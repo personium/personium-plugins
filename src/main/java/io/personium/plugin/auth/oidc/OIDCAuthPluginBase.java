@@ -116,7 +116,6 @@ public abstract class OIDCAuthPluginBase implements AuthPlugin {
             Date expiration = e.getClaims().getExpiration();
             throw OidcPluginException.EXPIRED_ID_TOKEN.create(expiration.getTime());
         } catch (MalformedJwtException | IllegalArgumentException e) {
-            e.printStackTrace();
             throw OidcPluginException.INVALID_ID_TOKEN.create("malformed jwt token is passed");
         } catch (SignatureException e) {
             // IdToken contains wrong signature

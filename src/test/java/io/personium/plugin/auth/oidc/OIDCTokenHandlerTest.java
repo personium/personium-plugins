@@ -18,12 +18,17 @@
 package io.personium.plugin.auth.oidc;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;
 import io.personium.plugin.base.auth.AuthPluginException;
@@ -45,7 +50,7 @@ public class OIDCTokenHandlerTest extends OIDCTestBase {
             String claimKey = "key001";
             String claimValue = "val001";
             OIDCTokenHandler handler = OIDCTokenHandler
-                    .createFromOIDCConfigurationURL("https://localhost/.well-known/openid-configuration");
+                    .createFromOIDCConfigurationURL(CONFIGURATION_ENDPOINT_URL);
             String token = Jwts.builder().setHeaderParam(JwsHeader.KEY_ID, keyId).signWith(privateKey)
                     .claim(claimKey, claimValue).compact();
             Claims claims = handler.parseIdToken(token);
@@ -55,4 +60,24 @@ public class OIDCTokenHandlerTest extends OIDCTestBase {
         }
     }
 
+    /**
+     * Test that OIDCTokenHandler throws when the token is expired.
+     */
+    @Test
+    public void OIDCTokenHandler_can_throw_Exception_for_expired_token() {
+        try {
+            String claimKey = "key001";
+            String claimValue = "val001";
+            OIDCTokenHandler handler = OIDCTokenHandler
+                    .createFromOIDCConfigurationURL(CONFIGURATION_ENDPOINT_URL);
+            Calendar cl = GregorianCalendar.getInstance();
+            cl.set(1999, 11, 31);
+            String token = Jwts.builder().setHeaderParam(JwsHeader.KEY_ID, keyId).signWith(privateKey)
+                    .claim(claimKey, claimValue).claim("exp", cl.getTimeInMillis() / 1000).compact();
+            handler.parseIdToken(token);
+            fail("Exception is not thrown");
+        } catch (Exception e) {
+            assertTrue("ExpiredJwtException is not thrown", e instanceof ExpiredJwtException);
+        }
+    }
 }
