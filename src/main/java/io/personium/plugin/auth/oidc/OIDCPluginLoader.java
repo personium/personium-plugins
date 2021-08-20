@@ -17,6 +17,8 @@
  */
 package io.personium.plugin.auth.oidc;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -50,22 +52,37 @@ public class OIDCPluginLoader implements AuthPluginLoader {
         ArrayList<AuthPlugin> result = new ArrayList<AuthPlugin>();
         Properties props = new Properties();
 
-        String unitConfigFilename = System.getProperty("io.personium.configurationFile",
+        String configFilename = System.getProperty("io.personium.configurationFile",
                 "personium-unit-config.properties");
 
-        try (InputStream is = ClassLoader.getSystemResourceAsStream(unitConfigFilename)) {
-            if (is == null) {
-                // file not found
-                log.info("configurationFile is not found: " + unitConfigFilename);
-                return result;
+        boolean loaded = false;
+
+        // load from classpath
+        try (InputStream is = OIDCPluginLoader.class.getClassLoader().getResourceAsStream(configFilename)) {
+            if (is != null) {
+                log.info("loading properties from classpath: " + configFilename);
+                props.load(is);
+                loaded = true;
             }
-            props.load(is);
-        } catch (IllegalArgumentException e) {
-            log.info("IllegalArgumentException while loading: " + unitConfigFilename, e);
-            return result;
         } catch (IOException e) {
-            log.info("IOException while loading: " + unitConfigFilename, e);
-            return result;
+            log.info("IOException while loading: " + configFilename, e);
+        }
+
+        // Read the local file specified
+        if (!loaded) {
+            try (InputStream is = new FileInputStream(configFilename)) {
+                log.info("loading properties from local file: " + configFilename);
+                props.load(is);
+                loaded = true;
+            } catch (FileNotFoundException e) {
+                log.info("Properties file is not found: " + configFilename, e);
+            } catch (IOException e) {
+                log.info("IOException while processing: " + configFilename, e);
+            }
+        }
+
+        if (!loaded) {
+            log.info("Properties file cannot be loaded: " + configFilename);
         }
 
         Pattern patternKey = Pattern.compile("io.personium.plugin.oidc.(\\w+).enabled");
