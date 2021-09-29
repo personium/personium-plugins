@@ -43,7 +43,7 @@ public class OIDCPluginLoaderTest extends OIDCTestBase {
      * Test if OIDCPluginLoader can load only plugins which is enabled.
      */
     @Test
-    public void multipleInstanceLoadTest() {
+    public void multipleInstanceLoadingTest() {
 
         String keyConfigurationFile = "io.personium.configurationFile";
 
