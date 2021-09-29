@@ -113,7 +113,7 @@ public class OIDCPluginLoader implements AuthPluginLoader {
                 String pluginName = props.getProperty(propPrefix + "\\.pluginName$", "Generic OIDC Plugin");
                 String accountType = props.getProperty(propPrefix + "\\.accountType$", "oidc:generic");
                 String accountNameKey = props.getProperty(propPrefix + "\\.accountNameKey$", "username");
-                String grantType = props.getProperty(propPrefix + ".grantType", "urn:x-personium:oidc:generic");
+                String grantType = props.getProperty(propPrefix + "\\.grantType$", "urn:x-personium:oidc:generic");
 
                 try {
                     result.add(new GenericOIDCAuthPlugin(configURL, listTrustedClientIds, pluginName, accountType,
