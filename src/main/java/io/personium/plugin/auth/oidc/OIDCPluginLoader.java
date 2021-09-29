@@ -96,9 +96,9 @@ public class OIDCPluginLoader implements AuthPluginLoader {
                     continue;
                 }
 
-                String propPrefix = "^io\\.personium\\.plugin\\.oidc\\." + matcher.group(1);
-                String configURL = props.getProperty(propPrefix + "\\.configURL$");
-                String trustedClientIds = props.getProperty(propPrefix + "\\.trustedClientIds$");
+                String propPrefix = "io.personium.plugin.oidc." + matcher.group(1);
+                String configURL = props.getProperty(propPrefix + ".configURL");
+                String trustedClientIds = props.getProperty(propPrefix + ".trustedClientIds");
 
                 if (configURL == null) {
                     log.info("configURL of " + matcher.group(1) + "is not set. Skip loading.");
@@ -110,10 +110,10 @@ public class OIDCPluginLoader implements AuthPluginLoader {
                 }
 
                 List<String> listTrustedClientIds = Arrays.asList(trustedClientIds.split(" "));
-                String pluginName = props.getProperty(propPrefix + "\\.pluginName$", "Generic OIDC Plugin");
-                String accountType = props.getProperty(propPrefix + "\\.accountType$", "oidc:generic");
-                String accountNameKey = props.getProperty(propPrefix + "\\.accountNameKey$", "username");
-                String grantType = props.getProperty(propPrefix + "\\.grantType$", "urn:x-personium:oidc:generic");
+                String pluginName = props.getProperty(propPrefix + ".pluginName", "Generic OIDC Plugin");
+                String accountType = props.getProperty(propPrefix + ".accountType", "oidc:generic");
+                String accountNameKey = props.getProperty(propPrefix + ".accountNameKey", "username");
+                String grantType = props.getProperty(propPrefix + ".grantType", "urn:x-personium:oidc:generic");
 
                 try {
                     result.add(new GenericOIDCAuthPlugin(configURL, listTrustedClientIds, pluginName, accountType,
