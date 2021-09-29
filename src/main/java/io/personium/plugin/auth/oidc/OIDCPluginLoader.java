@@ -50,40 +50,7 @@ public class OIDCPluginLoader implements AuthPluginLoader {
     @Override
     public ArrayList<AuthPlugin> loadInstances() {
         ArrayList<AuthPlugin> result = new ArrayList<AuthPlugin>();
-        Properties props = new Properties();
-
-        String configFilename = System.getProperty("io.personium.configurationFile",
-                "personium-unit-config.properties");
-
-        boolean loaded = false;
-
-        // load from classpath
-        try (InputStream is = OIDCPluginLoader.class.getClassLoader().getResourceAsStream(configFilename)) {
-            if (is != null) {
-                log.info("loading properties from classpath: " + configFilename);
-                props.load(is);
-                loaded = true;
-            }
-        } catch (IOException e) {
-            log.info("IOException while loading: " + configFilename, e);
-        }
-
-        // Read the local file specified
-        if (!loaded) {
-            try (InputStream is = new FileInputStream(configFilename)) {
-                log.info("loading properties from local file: " + configFilename);
-                props.load(is);
-                loaded = true;
-            } catch (FileNotFoundException e) {
-                log.info("Properties file is not found: " + configFilename, e);
-            } catch (IOException e) {
-                log.info("IOException while processing: " + configFilename, e);
-            }
-        }
-
-        if (!loaded) {
-            log.info("Properties file cannot be loaded: " + configFilename);
-        }
+        Properties props = loadProperties();
 
         Pattern patternKey = Pattern.compile("^io\\.personium\\.plugin\\.oidc\\.(\\w+)\\.enabled$");
 
@@ -135,4 +102,41 @@ public class OIDCPluginLoader implements AuthPluginLoader {
 
         return result;
     }
+
+    private Properties loadProperties() {
+        Properties props = new Properties();
+        String configFilename = System.getProperty("io.personium.configurationFile",
+                "personium-unit-config.properties");
+        boolean loaded = false;
+
+        // load from classpath
+        try (InputStream is = OIDCPluginLoader.class.getClassLoader().getResourceAsStream(configFilename)) {
+            if (is != null) {
+                log.info("loading properties from classpath: " + configFilename);
+                props.load(is);
+                loaded = true;
+            }
+        } catch (IOException e) {
+            log.info("IOException while loading: " + configFilename, e);
+        }
+
+        // Read the local file specified
+        if (!loaded) {
+            try (InputStream is = new FileInputStream(configFilename)) {
+                log.info("loading properties from local file: " + configFilename);
+                props.load(is);
+                loaded = true;
+            } catch (FileNotFoundException e) {
+                log.info("Properties file is not found: " + configFilename, e);
+            } catch (IOException e) {
+                log.info("IOException while processing: " + configFilename, e);
+            }
+        }
+
+        if (!loaded) {
+            log.info("Properties file cannot be loaded: " + configFilename);
+        }
+        return props;
+    }
+
 }
