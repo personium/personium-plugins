@@ -75,7 +75,7 @@ public class JwkResolver extends SigningKeyResolverAdapter {
             if (kid == null || !kid.equals(jsonJwk.get(Jwk.KEY_ID))) {
                 continue;
             }
-            if (alg != null && !alg.equals(jsonJwk.get(Jwk.ALGORITHM))) {
+            if (alg == null || !alg.equals(jsonJwk.get(Jwk.ALGORITHM))) {
                 continue;
             }
             // matched
