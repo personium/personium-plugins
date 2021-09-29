@@ -72,7 +72,7 @@ public class GenericOIDCAuthPlugin extends OIDCAuthPluginBase {
             String grantType) throws AuthPluginException {
         super(configurationEndpointURL);
         this.configurationEndpointURL = configurationEndpointURL;
-        this.trustedClientIds = trustedCliendIds;
+        this.trustedClientIds = trustedClientIds;
         this.pluginName = pluginName;
         this.accountType = accountType;
         this.accountNameKey = accountNameKey;
