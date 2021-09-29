@@ -65,7 +65,7 @@ public class GenericOIDCAuthPlugin extends OIDCAuthPluginBase {
      * @throws AuthPluginException Exception thrown while initializing
      */
     public GenericOIDCAuthPlugin(String configurationEndpointURL,
-            List<String> trustedCliendIds,
+            List<String> trustedClientIds,
             String pluginName,
             String accountType,
             String accountNameKey,
