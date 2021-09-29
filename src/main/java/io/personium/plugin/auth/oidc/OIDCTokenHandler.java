@@ -135,7 +135,7 @@ public class OIDCTokenHandler {
             }
             return create(issuer, jwksURI);
         } catch (ClientProtocolException e) {
-            // exception with HTTP procotol
+            // exception with HTTP protocol
             throw OidcPluginException.UNEXPECTED_RESPONSE.create(configurationURL, "proper HTTP response");
         } catch (IOException e) {
             // cannot reach server
