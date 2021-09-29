@@ -50,7 +50,7 @@ public final class Jwk {
     public static final String X509_CERTIFICATE_SHA256_THUMBPRINT = "x5t#256";
 
     /**
-     * This class cannot instanciate.
+     * This class cannot instantiate.
      */
     private Jwk() {
     }
