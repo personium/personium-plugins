@@ -48,8 +48,8 @@ public class OIDCPluginLoader implements AuthPluginLoader {
      * @{inheritDoc}
      */
     @Override
-    public ArrayList<AuthPlugin> loadInstances() {
-        ArrayList<AuthPlugin> result = new ArrayList<AuthPlugin>();
+    public List<AuthPlugin> loadInstances() {
+        List<AuthPlugin> result = new ArrayList<AuthPlugin>();
         Properties props = loadProperties();
 
         Pattern patternKey = Pattern.compile("^io\\.personium\\.plugin\\.oidc\\.(\\w+)\\.enabled$");
