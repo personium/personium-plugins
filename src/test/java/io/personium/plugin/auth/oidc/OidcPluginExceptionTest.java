@@ -37,6 +37,6 @@ public class OidcPluginExceptionTest {
     @Test
     public void testingForCreatingSpecifiedException() {
         AuthPluginException e = OidcPluginException.INVALID_KEY.create("testMessage");
-        assertEquals(e.getMessage(), "OpenID Connect Invalid Key. (testMessage)");
+        assertEquals("OpenID Connect Invalid Key. (testMessage)", e.getMessage());
     }
 }
