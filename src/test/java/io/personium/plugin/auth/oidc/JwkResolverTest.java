@@ -39,7 +39,7 @@ import io.personium.plugin.base.utils.PluginUtils;
 import io.personium.test.categories.Unit;
 
 /**
- * Test of JwkResovler.
+ * Test of JwkResolver.
  */
 @Category({Unit.class})
 public class JwkResolverTest {
