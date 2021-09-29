@@ -97,7 +97,7 @@ public class OIDCPluginLoader implements AuthPluginLoader {
                 }
 
                 String propPrefix = "^io\\.personium\\.plugin\\.oidc\\." + matcher.group(1);
-                String configURL = props.getProperty(propPrefix + ".configURL");
+                String configURL = props.getProperty(propPrefix + "\\.configURL$");
                 String trustedClientIds = props.getProperty(propPrefix + ".trustedClientIds");
 
                 if (configURL == null) {
