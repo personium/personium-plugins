@@ -34,7 +34,7 @@ public final class Jwk {
     /** Key for Algorithm Parameter. */
     public static final String ALGORITHM = "alg";
 
-    /** Key for Key ID Paramater. */
+    /** Key for Key ID Parameter. */
     public static final String KEY_ID = "kid";
 
     /** Key for X.509 URL Parameter. */
