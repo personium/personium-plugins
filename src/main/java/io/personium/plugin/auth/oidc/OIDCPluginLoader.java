@@ -85,7 +85,7 @@ public class OIDCPluginLoader implements AuthPluginLoader {
             log.info("Properties file cannot be loaded: " + configFilename);
         }
 
-        Pattern patternKey = Pattern.compile("io.personium.plugin.oidc.(\\w+).enabled");
+        Pattern patternKey = Pattern.compile("^io\\.personium\\.plugin\\.oidc\\.(\\w+)\\.enabled$");
 
         for (Entry<Object, Object> prop : props.entrySet()) {
             String propKey = prop.getKey().toString();
