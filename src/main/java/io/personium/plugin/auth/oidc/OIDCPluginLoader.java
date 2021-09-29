@@ -50,11 +50,63 @@ public class OIDCPluginLoader implements AuthPluginLoader {
     @Override
     public ArrayList<AuthPlugin> loadInstances() {
         ArrayList<AuthPlugin> result = new ArrayList<AuthPlugin>();
-        Properties props = new Properties();
+        Properties props = loadProperties();
 
+        Pattern patternKey = Pattern.compile("^io\\.personium\\.plugin\\.oidc\\.(\\w+)\\.enabled$");
+
+        for (Entry<Object, Object> prop : props.entrySet()) {
+            String propKey = prop.getKey().toString();
+            Matcher matcher = patternKey.matcher(propKey);
+            if (matcher.matches()) {
+                boolean isEnabled = Boolean.parseBoolean(props.getProperty(propKey));
+                if (!isEnabled) {
+                    continue;
+                }
+
+                String propPrefix = "io.personium.plugin.oidc." + matcher.group(1);
+                String configURL = props.getProperty(propPrefix + ".configURL");
+                String trustedClientIds = props.getProperty(propPrefix + ".trustedClientIds");
+
+                if (configURL == null) {
+                    log.info("configURL of " + matcher.group(1) + "is not set. Skip loading.");
+                    continue;
+                }
+                if (trustedClientIds == null) {
+                    log.info("trustedClientIds of " + matcher.group(1) + "is not set. Skip loading");
+                    continue;
+                }
+
+                List<String> listTrustedClientIds = Arrays.asList(trustedClientIds.split(" "));
+                String pluginName = props.getProperty(propPrefix + ".pluginName", "Generic OIDC Plugin");
+                String accountType = props.getProperty(propPrefix + ".accountType", "oidc:generic");
+                String accountNameKey = props.getProperty(propPrefix + ".accountNameKey", "username");
+                String grantType = props.getProperty(propPrefix + ".grantType", "urn:x-personium:oidc:generic");
+
+                try {
+                    result.add(new GenericOIDCAuthPlugin(configURL, listTrustedClientIds, pluginName, accountType,
+                            accountNameKey, grantType));
+                    StringBuilder logSB = new StringBuilder();
+                    logSB.append("Loaded plugin: " + pluginName + "\n");
+                    logSB.append("  configURL: " + configURL + "\n");
+                    logSB.append("  trustedClientIds: " + listTrustedClientIds + "\n");
+                    logSB.append("  accountType: " + accountType + "\n");
+                    logSB.append("  accountNameKey: " + accountNameKey + "\n");
+                    logSB.append("  grantType: " + grantType + "\n");
+                    log.info(logSB.toString());
+                } catch (AuthPluginException e) {
+                    // Ignore exception while initializing auth plugin.
+                    log.info("exception is thrown while initializing auth plugin for " + accountType, e);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private Properties loadProperties() {
+        Properties props = new Properties();
         String configFilename = System.getProperty("io.personium.configurationFile",
                 "personium-unit-config.properties");
-
         boolean loaded = false;
 
         // load from classpath
@@ -84,55 +136,7 @@ public class OIDCPluginLoader implements AuthPluginLoader {
         if (!loaded) {
             log.info("Properties file cannot be loaded: " + configFilename);
         }
-
-        Pattern patternKey = Pattern.compile("^io\\.personium\\.plugin\\.oidc\\.(\\w+)\\.enabled$");
-
-        for (Entry<Object, Object> prop : props.entrySet()) {
-            String propKey = prop.getKey().toString();
-            Matcher matcher = patternKey.matcher(propKey);
-            if (matcher.matches()) {
-                boolean isEnabled = Boolean.parseBoolean(props.getProperty(propKey));
-                if (!isEnabled) {
-                    continue;
-                }
-
-                String propPrefix = "^io\\.personium\\.plugin\\.oidc\\." + matcher.group(1);
-                String configURL = props.getProperty(propPrefix + "\\.configURL$");
-                String trustedClientIds = props.getProperty(propPrefix + "\\.trustedClientIds$");
-
-                if (configURL == null) {
-                    log.info("configURL of " + matcher.group(1) + "is not set. Skip loading.");
-                    continue;
-                }
-                if (trustedClientIds == null) {
-                    log.info("trustedClientIds of " + matcher.group(1) + "is not set. Skip loading");
-                    continue;
-                }
-
-                List<String> listTrustedClientIds = Arrays.asList(trustedClientIds.split(" "));
-                String pluginName = props.getProperty(propPrefix + "\\.pluginName$", "Generic OIDC Plugin");
-                String accountType = props.getProperty(propPrefix + "\\.accountType$", "oidc:generic");
-                String accountNameKey = props.getProperty(propPrefix + "\\.accountNameKey$", "username");
-                String grantType = props.getProperty(propPrefix + "\\.grantType$", "urn:x-personium:oidc:generic");
-
-                try {
-                    result.add(new GenericOIDCAuthPlugin(configURL, listTrustedClientIds, pluginName, accountType,
-                            accountNameKey, grantType));
-                    StringBuilder logSB = new StringBuilder();
-                    logSB.append("Loaded plugin: " + pluginName + "\n");
-                    logSB.append("  configURL: " + configURL + "\n");
-                    logSB.append("  trustedClientIds: " + listTrustedClientIds + "\n");
-                    logSB.append("  accountType: " + accountType + "\n");
-                    logSB.append("  accountNameKey: " + accountNameKey + "\n");
-                    logSB.append("  grantType: " + grantType + "\n");
-                    log.info(logSB.toString());
-                } catch (AuthPluginException e) {
-                    // Ignore exception while initializing auth plugin.
-                    log.info("exception is thrown while initializing auth plugin for " + accountType, e);
-                }
-            }
-        }
-
-        return result;
+        return props;
     }
+
 }

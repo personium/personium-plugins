@@ -131,10 +131,10 @@ public class GenericOIDCAuthPluginTest extends OIDCTestBase {
     }
 
     /**
-     * Test that isProviderClientIdTrusted returns true if aud(client_id) in claims is trusted.
+     * Test that isProviderClientIdTrusted throws AuthPluginException if claims is expired.
      */
     @Test
-    public void isProviderClientIdTrusted_returns_true_if_aud_is_trusted_() {
+    public void isProviderClientIdTrusted_throws_AuthPluginException_if_claims_is_expired() {
 
         Claims claims = Jwts.claims();
         Calendar cl = GregorianCalendar.getInstance();
