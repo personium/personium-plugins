@@ -54,7 +54,7 @@ public class OIDCTokenHandlerTest extends OIDCTestBase {
             String token = Jwts.builder().setHeaderParam(JwsHeader.KEY_ID, keyId).signWith(privateKey)
                     .claim(claimKey, claimValue).compact();
             Claims claims = handler.parseIdToken(token);
-            assertEquals(claims.get(claimKey), claimValue);
+            assertEquals(claimValue, claims.get(claimKey));
         } catch (AuthPluginException e) {
             fail(e.getMessage());
         }
