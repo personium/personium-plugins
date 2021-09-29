@@ -45,7 +45,7 @@ import io.personium.test.categories.Unit;
 public class JwkResolverTest {
 
     /**
-     * Test that JwkResover can resolve key from Json Web Key Set.
+     * Test that JwkResolver can resolve key from Json Web Key Set.
      */
     @Test
     @SuppressWarnings("unchecked")
