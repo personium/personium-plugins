@@ -81,7 +81,7 @@ public abstract class OIDCAuthPluginBase implements AuthPlugin {
 
     /**
      * Abstract method for determining the provided audience is trusted.
-     * @param claims claims containerd in id token
+     * @param claims claims contained in id token
      * @return true if client_id is trusted
      */
     protected abstract boolean isProviderClientIdTrusted(Claims claims);
