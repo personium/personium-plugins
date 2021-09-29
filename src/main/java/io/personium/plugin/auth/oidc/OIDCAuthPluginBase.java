@@ -39,7 +39,7 @@ import io.personium.plugin.base.auth.AuthenticatedIdentity;
 public abstract class OIDCAuthPluginBase implements AuthPlugin {
 
     /** String for toString method. */
-    public static final String PLUGIN_TOSTRING = "Generic Open ID Connect Authentication";
+    public static final String PLUGIN_TOSTRING = "Generic OpenID Connect Authentication";
 
     /** Key for id token. */
     public static final String KEY_TOKEN = "id_token";
