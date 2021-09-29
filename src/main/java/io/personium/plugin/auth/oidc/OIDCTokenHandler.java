@@ -105,7 +105,7 @@ public class OIDCTokenHandler {
             JwkSet jwks = JwkSet.parseJSON(jsonJwks);
             return new OIDCTokenHandler(issuer, jwks);
         } catch (ClientProtocolException e) {
-            // exception with HTTP procotol
+            // exception with HTTP protocol
             throw OidcPluginException.UNEXPECTED_RESPONSE.create(jwksURI, "proper HTTP response");
         } catch (IOException e) {
             // cannot reach server
