@@ -57,7 +57,7 @@ public class GenericOIDCAuthPlugin extends OIDCAuthPluginBase {
     /**
      * Constructor of OIDCAuthPlugin.
      * @param configurationEndpointURL URL of OpenID Discovery 1.0 configuration endpoint
-     * @param trustedCliendIds List of trusted client ids
+     * @param trustedClientIds List of trusted client ids
      * @param pluginName Human-readable name of plugin
      * @param accountType accountType of AuthPlugin
      * @param accountNameKey key of name used to find account in the Cell
