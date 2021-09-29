@@ -78,7 +78,7 @@ public class JwkResolver extends SigningKeyResolverAdapter {
             if (alg != null && !alg.equals(jsonJwk.get(Jwk.ALGORITHM))) {
                 continue;
             }
-            // metched
+            // matched
             try {
                 return generateKeyFromJwk(jsonJwk);
             } catch (IllegalArgumentException | NoSuchAlgorithmException e) {
