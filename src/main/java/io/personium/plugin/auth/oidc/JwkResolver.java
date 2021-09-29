@@ -72,7 +72,7 @@ public class JwkResolver extends SigningKeyResolverAdapter {
 
         List<JSONObject> listJwk = jwkSet.getKeys();
         for (JSONObject jsonJwk : listJwk) {
-            if (kid != null && !kid.equals(jsonJwk.get(Jwk.KEY_ID))) {
+            if (kid == null || !kid.equals(jsonJwk.get(Jwk.KEY_ID))) {
                 continue;
             }
             if (alg != null && !alg.equals(jsonJwk.get(Jwk.ALGORITHM))) {
