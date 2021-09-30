@@ -21,9 +21,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -55,7 +55,7 @@ public class OIDCPluginLoaderTest extends OIDCTestBase {
             if (!(loader instanceof AuthPluginLoader)) {
                 fail("PluginLoader must implement AuthPluginLoader");
             }
-            ArrayList<AuthPlugin> arrPlugin = loader.loadInstances();
+            List<AuthPlugin> arrPlugin = loader.loadInstances();
 
             Set<String> accountTypes = new HashSet<String>(
                     Arrays.asList("accountType001", "accountType002", "accountType004"));
