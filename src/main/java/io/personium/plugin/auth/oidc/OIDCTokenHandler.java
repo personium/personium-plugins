@@ -18,7 +18,9 @@
 package io.personium.plugin.auth.oidc;
 
 import java.io.IOException;
+import java.security.Key;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.json.simple.JSONObject;
@@ -26,9 +28,11 @@ import org.json.simple.parser.ParseException;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.personium.plugin.base.auth.AuthPluginException;
+import io.personium.plugin.base.auth.AuthPluginUtils;
 import io.personium.plugin.base.utils.PluginUtils;
 
 /**
@@ -39,11 +43,11 @@ public class OIDCTokenHandler {
     /** Issuer. */
     private String issuer = null;
 
+    /** Jwks URI */
+    private String jwksURI = null;
+
     /** Resolver of Jwk. */
     private JwkResolver jwkResolver = null;
-
-    /** Jwt Parser. */
-    private JwtParser jwtParser = null;
 
     /** How many parts JWS contains. */
     private static final int PART_COUNT_JWS = 3;
@@ -56,13 +60,13 @@ public class OIDCTokenHandler {
      * @param issuer issuer
      * @param jwks Jwks object
      */
-    public OIDCTokenHandler(String issuer, JwkSet jwks) {
-        if (jwks == null) {
-            throw new IllegalArgumentException("jwks must not be null");
+    public OIDCTokenHandler(String issuer, String jwksURI) {
+        if (StringUtils.isEmpty(jwksURI)) {
+            throw new IllegalArgumentException("jwksUrl must not be empty");
         }
         this.issuer = issuer;
-        this.jwkResolver = new JwkResolver(jwks);
-        this.jwtParser = Jwts.parserBuilder().setSigningKeyResolver(this.jwkResolver).build();
+        this.jwksURI = jwksURI;
+        this.jwkResolver = new JwkResolver(new JwkSet());
     }
 
     /**
@@ -70,11 +74,37 @@ public class OIDCTokenHandler {
      * @param idToken id token
      * @return claims
      */
-    public Claims parseIdToken(String idToken) {
+    public Claims parseIdToken(String idToken) throws AuthPluginException {
         String[] parts = idToken.split("\\.");
 
         if (parts.length == PART_COUNT_JWS) {
-            Jws<Claims> jws = this.jwtParser.parseClaimsJws(idToken);
+            // check that key exists on Jwks.
+            JSONObject header = null;
+            try {
+                header = (JSONObject) AuthPluginUtils.tokenToJSON(parts[0]);
+            } catch (ParseException e) {
+                throw new IllegalArgumentException("JWS Header is broken", e);
+            }
+
+            String kid = (String)header.get(JwsHeader.KEY_ID);
+            String alg = (String)header.get(JwsHeader.ALGORITHM);
+            Key key = this.jwkResolver.resolveSigningKey(kid, alg);
+            if (key == null) {
+                // refresh
+                try {
+                    JwkSet jwks = JwkSet.fetchJwks(jwksURI);
+                    this.jwkResolver = new JwkResolver(jwks);
+                } catch (IOException e) {
+                    // cannot reach server
+                    throw OidcPluginException.UNEXPECTED_RESPONSE.create(HttpGet.METHOD_NAME, jwksURI, "");
+                } catch (ParseException e) {
+                    // response is not JSON
+                    throw OidcPluginException.UNEXPECTED_RESPONSE.create(jwksURI, "JSON");
+                }
+                key = this.jwkResolver.resolveSigningKey(kid, alg);
+            }
+            JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(key).build();
+            Jws<Claims> jws = jwtParser.parseClaimsJws(idToken);
             Claims claims = jws.getBody();
             return claims;
         } else if (parts.length == PART_COUNT_JWE) {
@@ -92,29 +122,6 @@ public class OIDCTokenHandler {
         return this.issuer;
     }
 
-    /**
-     * Create OIDCTokenHandle instance with specified issuer and jwksURI.
-     * @param issuer Identifier of issuer
-     * @param jwksURI URL for retrieving json web keys
-     * @return OIDCTokenHandler
-     * @throws AuthPluginException Exception thrown while initializing OIDCTokenHandler
-     */
-    public static OIDCTokenHandler create(String issuer, String jwksURI) throws AuthPluginException {
-        try {
-            JSONObject jsonJwks = PluginUtils.getHttpJSON(jwksURI);
-            JwkSet jwks = JwkSet.parseJSON(jsonJwks);
-            return new OIDCTokenHandler(issuer, jwks);
-        } catch (ClientProtocolException e) {
-            // exception with HTTP protocol
-            throw OidcPluginException.UNEXPECTED_RESPONSE.create(jwksURI, "proper HTTP response");
-        } catch (IOException e) {
-            // cannot reach server
-            throw OidcPluginException.UNEXPECTED_RESPONSE.create(HttpGet.METHOD_NAME, jwksURI, "");
-        } catch (ParseException e) {
-            // response is not JSON
-            throw OidcPluginException.UNEXPECTED_RESPONSE.create(jwksURI, "JSON");
-        }
-    }
 
     /**
      * Create OIDCTokenHandle instance from configuration URL (For OpenID Connect Discovery 1.0).
@@ -133,7 +140,7 @@ public class OIDCTokenHandler {
             if (issuer == null) {
                 throw OidcPluginException.UNEXPECTED_RESPONSE.create(issuer, "non-null `issuer`");
             }
-            return create(issuer, jwksURI);
+            return new OIDCTokenHandler(issuer, jwksURI);
         } catch (ClientProtocolException e) {
             // exception with HTTP protocol
             throw OidcPluginException.UNEXPECTED_RESPONSE.create(configurationURL, "proper HTTP response");
