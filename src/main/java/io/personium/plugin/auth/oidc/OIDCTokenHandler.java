@@ -62,7 +62,7 @@ public class OIDCTokenHandler {
      */
     public OIDCTokenHandler(String issuer, String jwksURI) {
         if (StringUtils.isEmpty(jwksURI)) {
-            throw new IllegalArgumentException("jwksUrl must not be empty");
+            throw new IllegalArgumentException("jwksURI must not be empty");
         }
         this.issuer = issuer;
         this.jwksURI = jwksURI;
