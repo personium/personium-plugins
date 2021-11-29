@@ -102,6 +102,9 @@ public class OIDCTokenHandler {
                     throw OidcPluginException.UNEXPECTED_RESPONSE.create(jwksURI, "JSON");
                 }
                 key = this.jwkResolver.resolveSigningKey(kid, alg);
+                if (key == null) {
+                    throw OidcPluginException.INVALID_KEY.create("The key [" + kid + "] is not contained in IdP JwkSet.");
+                }
             }
             JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(key).build();
             Jws<Claims> jws = jwtParser.parseClaimsJws(idToken);
