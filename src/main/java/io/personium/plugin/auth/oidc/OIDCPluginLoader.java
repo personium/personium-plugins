@@ -45,7 +45,7 @@ public class OIDCPluginLoader implements AuthPluginLoader {
     private static Logger log = LoggerFactory.getLogger(OIDCPluginLoader.class);
 
     /**
-     * @{inheritDoc}
+     * {@inheritDoc}
      */
     @Override
     public List<AuthPlugin> loadInstances() {
