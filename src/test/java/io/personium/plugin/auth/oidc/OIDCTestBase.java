@@ -24,12 +24,15 @@ import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.spec.RSAPublicKeySpec;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.personium.plugin.base.utils.PluginUtils;
@@ -55,12 +58,63 @@ public abstract class OIDCTestBase {
     String keyType = "RSA";
 
     /** Key id specified in jwks. */
-    String keyId = "test_kid";
+    String keyId = "";
 
     /** Key alg specified in jwks (After being generated). */
     String keyAlg = "";
 
+    /** Private Key to sign */
     PrivateKey privateKey = null;
+
+    /** JwkSet response */
+    private JSONObject jsonJwks = null;
+
+    /**
+     * Setter of JwkSet
+     * @param keys JSONArray of keys
+     */
+    @SuppressWarnings("unchecked")
+    protected void setJwkSet(JSONArray keys) {
+        jsonJwks = new JSONObject();
+        jsonJwks.put("keys", keys);
+    }
+
+    /**
+     * Getter of JwkSet
+     */
+    protected JSONObject getJwkSet() {
+        return this.jsonJwks;
+    }
+
+    /**
+     * This function prepares new KeyPair.
+     */
+    @SuppressWarnings("unchecked")
+    protected void prepareKeys() throws Exception {
+        this.keyType = "RSA";
+        KeyPairGenerator kg = KeyPairGenerator.getInstance(keyType);
+        kg.initialize(KEY_SIZE);
+        KeyPair keyPair = kg.generateKeyPair();
+        KeyFactory factory = KeyFactory.getInstance(keyType);
+        this.privateKey = keyPair.getPrivate();
+        
+        this.keyId = RandomStringUtils.randomAlphanumeric(32).toUpperCase();
+        this.keyAlg = SignatureAlgorithm.forSigningKey(privateKey).getValue();
+
+        RSAPublicKeySpec publicKeySpec = factory.getKeySpec(keyPair.getPublic(), RSAPublicKeySpec.class);
+        BigInteger n = publicKeySpec.getModulus();
+        BigInteger e = publicKeySpec.getPublicExponent();
+
+        JSONArray arrJwk = new JSONArray();
+        JSONObject testJwk = new JSONObject();
+        testJwk.put(Jwk.KEY_TYPE, keyType);
+        testJwk.put("n", PluginUtils.encodeBase64Url(n.toByteArray()));
+        testJwk.put("e", PluginUtils.encodeBase64Url(e.toByteArray()));
+        testJwk.put(Jwk.KEY_ID, keyId);
+        testJwk.put(Jwk.ALGORITHM, keyAlg);
+        arrJwk.add(testJwk);
+        this.setJwkSet(arrJwk);
+    }
 
     /**
      * Prepare dummy KeyPair and setup mock of PluginUtils.
@@ -71,29 +125,9 @@ public abstract class OIDCTestBase {
     public void prepare() throws Exception {
 
         /** Preparing dummy KeyPair */
-        this.keyType = "RSA";
-        KeyPairGenerator kg = KeyPairGenerator.getInstance(keyType);
-        kg.initialize(KEY_SIZE);
-        KeyPair keyPair = kg.generateKeyPair();
-        KeyFactory factory = KeyFactory.getInstance(keyType);
-        this.privateKey = keyPair.getPrivate();
-        this.keyAlg = SignatureAlgorithm.forSigningKey(privateKey).getValue();
+        prepareKeys();
 
-        RSAPublicKeySpec publicKeySpec = factory.getKeySpec(keyPair.getPublic(), RSAPublicKeySpec.class);
-        BigInteger n = publicKeySpec.getModulus();
-        BigInteger e = publicKeySpec.getPublicExponent();
-
-        JSONObject jsonJwks = new JSONObject();
-        JSONArray arrJwk = new JSONArray();
-        JSONObject testJwk = new JSONObject();
-        testJwk.put(Jwk.KEY_TYPE, keyType);
-        testJwk.put("n", PluginUtils.encodeBase64Url(n.toByteArray()));
-        testJwk.put("e", PluginUtils.encodeBase64Url(e.toByteArray()));
-        testJwk.put(Jwk.KEY_ID, keyId);
-        testJwk.put(Jwk.ALGORITHM, keyAlg);
-        arrJwk.add(testJwk);
-        jsonJwks.put("keys", arrJwk);
-
+        /** Setup mock */
         mockedPluginUtils = Mockito.mockStatic(PluginUtils.class);
 
         JSONObject dummyConfig = new JSONObject();
@@ -106,7 +140,12 @@ public abstract class OIDCTestBase {
 
         mockedPluginUtils.when(() -> {
             PluginUtils.getHttpJSON("https://localhost/jwks");
-        }).thenReturn(jsonJwks);
+        }).then(new Answer<JSONObject>() {
+            @Override
+            public JSONObject answer(InvocationOnMock invocation) throws Throwable {
+                return getJwkSet();
+            }
+        });
 
         mockedPluginUtils.when(() -> {
             PluginUtils.decodeBase64Url(Mockito.anyString());
