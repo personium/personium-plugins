@@ -58,7 +58,7 @@ public class OIDCTokenHandler {
     /**
      * Constructor of OIDCTokenHandler.
      * @param issuer issuer
-     * @param jwks Jwks object
+     * @param jwksURI URI of json web key set
      */
     public OIDCTokenHandler(String issuer, String jwksURI) {
         if (StringUtils.isEmpty(jwksURI)) {
