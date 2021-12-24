@@ -79,7 +79,7 @@ public class JwkSet {
     }
 
     /**
-     * fetch Jwks from jwksURI
+     * fetch Jwks from jwksURI.
      * @param jwksURI source URI.
      * @return JwkSet.
      * @throws IOException thrown if Exception is happened while fetching

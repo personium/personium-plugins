@@ -58,7 +58,7 @@ public class JwkResolver extends SigningKeyResolverAdapter {
     }
 
     /**
-     * Find Signing key matching specified `kid` and `alg`
+     * Find Signing key matching specified `kid` and `alg`.
      * @param kid key id
      * @param alg key algorithm
      * @return Found key in JwkSet.

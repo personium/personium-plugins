@@ -43,7 +43,7 @@ public class OIDCTokenHandler {
     /** Issuer. */
     private String issuer = null;
 
-    /** Jwks URI */
+    /** Jwks URI. */
     private String jwksURI = null;
 
     /** Resolver of Jwk. */
@@ -87,8 +87,8 @@ public class OIDCTokenHandler {
                 throw new IllegalArgumentException("JWS Header is broken", e);
             }
 
-            String kid = (String)header.get(JwsHeader.KEY_ID);
-            String alg = (String)header.get(JwsHeader.ALGORITHM);
+            String kid = (String) header.get(JwsHeader.KEY_ID);
+            String alg = (String) header.get(JwsHeader.ALGORITHM);
             Key key = this.jwkResolver.resolveSigningKey(kid, alg);
             if (key == null) {
                 // refresh
@@ -104,7 +104,8 @@ public class OIDCTokenHandler {
                 }
                 key = this.jwkResolver.resolveSigningKey(kid, alg);
                 if (key == null) {
-                    throw OidcPluginException.INVALID_KEY.create("The key [" + kid + "] is not contained in IdP JwkSet.");
+                    String msg = "The key [" + kid + "] is not contained in IdP JwkSet.";
+                    throw OidcPluginException.INVALID_KEY.create(msg);
                 }
             }
             JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(key).build();
