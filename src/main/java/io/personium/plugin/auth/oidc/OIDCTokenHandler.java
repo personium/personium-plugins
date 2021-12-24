@@ -73,7 +73,7 @@ public class OIDCTokenHandler {
      * Try parsing id token. jwtParser does not support encrypted IdToken(JWE).
      * @param idToken id token
      * @return claims
-     * @throws AuthPluginException thrown if parsing IdTopken is failed
+     * @throws AuthPluginException thrown if parsing IdToken is failed
      */
     public Claims parseIdToken(String idToken) throws AuthPluginException {
         String[] parts = idToken.split("\\.");
