@@ -1,10 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.personium</groupId>
     <artifactId>personium-plugins</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.7</version>
+    <version>1.0.8-SNAPSHOT</version>
     <name>personium-plugins</name>
+    <description>Personium official plugin modules.</description>
+    <url>https://github.com/personium/personium-plugins</url>
     <licenses>
         <license>
             <name>The Apache Software License, Version 2.0</name>
@@ -12,9 +14,49 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    <developers>
+        <developer>
+            <name>Akio Shimono</name>
+            <email>shimono.akio@fujitsu.com</email>
+            <organization>Fujitsu Limited</organization>
+            <organizationUrl>https://www.fujitsu.com/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Dixon Siu</name>
+            <email>siu.dixon@fujitsu.com</email>
+            <organization>Fujitsu Limited</organization>
+            <organizationUrl>https://www.fujitsu.com/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Yasufumi Tochiori</name>
+            <email>tochiori.y@fujitsu.com</email>
+            <organization>Fujitsu Limited</organization>
+            <organizationUrl>https://www.fujitsu.com/</organizationUrl>
+        </developer>
+        <developer>
+            <name>Yo Ishiguro</name>
+            <email>ishiguro.yo@fujitsu.com</email>
+            <organization>Fujitsu Limited</organization>
+            <organizationUrl>https://www.fujitsu.com/</organizationUrl>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:git://github.com/personium/personium-plugins.git</connection>
+        <developerConnection>scm:git:ssh://github.com:personium/personium-plugins.git</developerConnection>
+        <url>http://github.com/personium/personium-plugins/tree/master</url>
+    </scm>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <final.name>personium-plugins</final.name>
         <java.version>1.8</java.version>
         <slf4j.version>1.7.25</slf4j.version>
         <jacoco.include.package>io.personium.*</jacoco.include.package>
@@ -24,7 +66,7 @@
         <dependency>
             <groupId>io.personium</groupId>
             <artifactId>personium-plugin-base</artifactId>
-            <version>1.0.8</version>
+            <version>1.0.9-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -74,29 +116,19 @@
     </dependencies>
     <repositories>
         <repository>
-            <id>central</id>
-            <name>Maven Repository Switchboard</name>
+            <id>snapshots</id>
+            <name>Nexus Snapshots Repository</name>
             <layout>default</layout>
-            <url>https://repo1.maven.org/maven2</url>
-            <snapshots>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
                 <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>personium.io</id>
-            <name>personium.io</name>
-            <url>https://personium.io/mvnrepo</url>
-        </repository>
     </repositories>
-    <distributionManagement>
-        <repository>
-            <id>personium.io</id>
-            <name>Personium Repository</name>
-            <url>https://personium.io/mvnrepo</url>
-        </repository>
-    </distributionManagement>
     <build>
-        <finalName>${final.name}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -129,7 +161,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.1.2</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <configLocation>personium-checkstyle.xml</configLocation>
@@ -153,6 +185,7 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.1.1</version>
                 <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                             <manifestEntries>
@@ -172,16 +205,13 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
-                        <configuration>
-                            <finalName>${final.name}</finalName>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.1</version>
+                <version>0.8.7</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -197,6 +227,17 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.8</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -227,7 +268,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.1.2</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <configLocation>personium-checkstyle.xml</configLocation>
@@ -267,4 +308,59 @@
             </plugin>
         </plugins>
     </reporting>
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.9.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

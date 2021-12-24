@@ -151,7 +151,7 @@ public class GenericOIDCAuthPluginTest extends OIDCTestBase {
 
             Map<String, List<String>> body = new HashMap<String, List<String>>();
             body.put("id_token", Arrays.asList(token));
-            AuthenticatedIdentity ai = plugin.authenticate(body);
+            plugin.authenticate(body);
             fail("No Exception is thrown");
             // assertEquals(true, plugin.isProviderClientIdTrusted(claims));
         } catch (AuthPluginException e) {

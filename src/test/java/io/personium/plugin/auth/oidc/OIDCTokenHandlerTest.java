@@ -34,15 +34,15 @@ import io.jsonwebtoken.Jwts;
 import io.personium.plugin.base.auth.AuthPluginException;
 import io.personium.test.categories.Unit;
 
-
 /**
  * Unit test for OIDCTokenHandler.
  */
-@Category({Unit.class})
+@Category({ Unit.class })
 public class OIDCTokenHandlerTest extends OIDCTestBase {
 
     /**
-     * Test that OIDCTokenHandler can handle correct token and parse claims from jws.
+     * Test that OIDCTokenHandler can handle correct token and parse claims from
+     * jws.
      */
     @Test
     public void OIDCTokenHandler_can_handle_correct_token() {
@@ -79,5 +79,27 @@ public class OIDCTokenHandlerTest extends OIDCTestBase {
         } catch (Exception e) {
             assertTrue("ExpiredJwtException is not thrown", e instanceof ExpiredJwtException);
         }
+    }
+
+    /**
+     * Test that OIDCTokenHandler can reload JwkSet from IdP when IdP updates
+     * JwkSet.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void OIDCTokenHandler_can_reload_jwkset_if_updated() throws Exception {
+        String claimKey = "key001";
+        String claimValue = "val001";
+        OIDCTokenHandler handler = OIDCTokenHandler.createFromOIDCConfigurationURL(CONFIGURATION_ENDPOINT_URL);
+        String token = Jwts.builder().setHeaderParam(JwsHeader.KEY_ID, keyId).signWith(privateKey)
+                .claim(claimKey, claimValue).compact();
+        handler.parseIdToken(token);
+
+        // update key pair
+        this.prepareKeys();
+        token = Jwts.builder().setHeaderParam(JwsHeader.KEY_ID, keyId).signWith(privateKey).claim(claimKey, claimValue)
+                .compact();
+        handler.parseIdToken(token);
     }
 }

@@ -17,11 +17,15 @@
  */
 package io.personium.plugin.auth.oidc;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
+
+import io.personium.plugin.base.utils.PluginUtils;
 
 /**
  * JSON Web Key Set. Please refer to https://datatracker.ietf.org/doc/html/rfc7517#section-5 .
@@ -72,5 +76,17 @@ public class JwkSet {
             result.listJwks.add((JSONObject) objKey);
         }
         return result;
+    }
+
+    /**
+     * fetch Jwks from jwksURI
+     * @param jwksURI source URI.
+     * @return JwkSet.
+     * @throws IOException thrown if Exception is happened while fetching
+     * @throws ParseException thrown if Exception is happened while parsing
+     */
+    public static JwkSet fetchJwks(String jwksURI) throws IOException, ParseException {
+        JSONObject jsonJwks = PluginUtils.getHttpJSON(jwksURI);
+        return JwkSet.parseJSON(jsonJwks);
     }
 }

@@ -58,18 +58,12 @@ public class JwkResolver extends SigningKeyResolverAdapter {
     }
 
     /**
-     * {@inheritDoc}
+     * Find Signing key matching specified `kid` and `alg`
+     * @param kid key id
+     * @param alg key algorithm
+     * @return Found key in JwkSet.
      */
-    @Override
-    @SuppressWarnings("rawtypes")
-    public Key resolveSigningKey(JwsHeader header, Claims claims) {
-        /**
-         * Resolve Signing key specified in JwsHeader. It must be considered that `jku` and `jws` parameter, but this
-         * class does not support yet.
-         */
-        String kid = header.getKeyId();
-        String alg = header.getAlgorithm();
-
+    public Key resolveSigningKey(String kid, String alg) {
         List<JSONObject> listJwk = jwkSet.getKeys();
         for (JSONObject jsonJwk : listJwk) {
             if (kid == null || !kid.equals(jsonJwk.get(Jwk.KEY_ID))) {
@@ -87,6 +81,22 @@ public class JwkResolver extends SigningKeyResolverAdapter {
         }
         // not found
         return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("rawtypes")
+    public Key resolveSigningKey(JwsHeader header, Claims claims) {
+        /**
+         * Resolve Signing key specified in JwsHeader. It must be considered that `jku` and `jws` parameter, but this
+         * class does not support yet.
+         */
+        String kid = header.getKeyId();
+        String alg = header.getAlgorithm();
+
+        return resolveSigningKey(kid, alg);
     }
 
     /**
