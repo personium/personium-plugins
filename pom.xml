@@ -57,7 +57,7 @@
     </distributionManagement>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <slf4j.version>1.7.25</slf4j.version>
         <jacoco.include.package>io.personium.*</jacoco.include.package>
         <plugin.class>io.personium.plugin.auth.oidc.OIDCPluginLoader</plugin.class>
@@ -66,7 +66,7 @@
         <dependency>
             <groupId>io.personium</groupId>
             <artifactId>personium-plugin-base</artifactId>
-            <version>1.0.9</version>
+            <version>1.0.10-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
