@@ -57,8 +57,9 @@
     </distributionManagement>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <slf4j.version>1.7.25</slf4j.version>
+        <surefire.version>2.22.2</surefire.version>
         <jacoco.include.package>io.personium.*</jacoco.include.package>
         <plugin.class>io.personium.plugin.auth.oidc.OIDCPluginLoader</plugin.class>
     </properties>
@@ -153,7 +154,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.21.0</version>
+                <version>${surefire.version}</version>
                 <configuration>
                     <argLine>${jacocoArgs} -Xms512m -Xmx512m</argLine>
                 </configuration>
@@ -256,7 +257,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>2.21.0</version>
+                <version>${surefire.version}</version>
                 <reportSets>
                     <reportSet>
                         <reports>
