@@ -60,6 +60,7 @@
         <java.version>17</java.version>
         <slf4j.version>1.7.25</slf4j.version>
         <surefire.version>2.22.2</surefire.version>
+        <jacoco.version>0.8.7</jacoco.version>
         <jacoco.include.package>io.personium.*</jacoco.include.package>
         <plugin.class>io.personium.plugin.auth.oidc.OIDCPluginLoader</plugin.class>
     </properties>
@@ -212,7 +213,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.7</version>
+                <version>${jacoco.version}</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -305,7 +306,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.1</version>
+                <version>${jacoco.version}</version>
             </plugin>
         </plugins>
     </reporting>
