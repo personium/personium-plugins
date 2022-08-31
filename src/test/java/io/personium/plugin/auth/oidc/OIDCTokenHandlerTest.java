@@ -84,8 +84,8 @@ public class OIDCTokenHandlerTest extends OIDCTestBase {
     /**
      * Test that OIDCTokenHandler can reload JwkSet from IdP when IdP updates
      * JwkSet.
-     * 
-     * @throws Exception
+     *
+     * @throws Exception exception
      */
     @Test
     public void OIDCTokenHandler_can_reload_jwkset_if_updated() throws Exception {
